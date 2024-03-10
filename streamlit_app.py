@@ -50,6 +50,7 @@ def get_floorsheet_data(as_of=None):
 
     # Concatenate all DataFrames in the list
     all_data = pd.concat(all_data_list, ignore_index=True)
+
     return all_data, as_of
 
 # Streamlit UI
@@ -62,7 +63,7 @@ market_status_response = requests.get(market_status_url)
 # Check if the request was successful (status code 200)
 if market_status_response.status_code == 200:
     market_status_data = market_status_response.json()
-    
+
     # Get the 'as_of' value from the market status data
     as_of = market_status_data.get("as_of")
 
@@ -72,7 +73,10 @@ if market_status_response.status_code == 200:
     # Button to trigger data retrieval
     if st.button("Retrieve Floorsheet Data"):
         floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
-        
+
+        # Display a message outside the cached function
+        st.write("Data retrieval successful.")
+
         # Provide a download link for the CSV file
         csv_data = floorsheet_data.to_csv(index=False).encode('utf-8')
         st.download_button(
