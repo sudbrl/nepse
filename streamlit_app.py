@@ -63,17 +63,16 @@ market_status_response = requests.get(market_status_url)
 # Check if the request was successful (status code 200)
 if market_status_response.status_code == 200:
     market_status_data = market_status_response.json()
-    
+
     # Get the 'as_of' value from the market status data
     as_of = market_status_data.get("as_of")
 
     # Button to trigger data retrieval
-  if st.button("Retrieve Floorsheet Data"):
-    floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
-    
-    # Save the data to a CSV file
-    csv_file_path = "floorsheet_data.csv"
-    floorsheet_data.to_csv(csv_file_path, index=False)
+    if st.button("Retrieve Floorsheet Data"):
+        floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
 
-    st.success(f"Data saved to {csv_file_path}")
+        # Save the data to a CSV file
+        csv_file_path = "floorsheet_data.csv"
+        floorsheet_data.to_csv(csv_file_path, index=False)
 
+        st.success(f"Data saved to {csv_file_path}")
