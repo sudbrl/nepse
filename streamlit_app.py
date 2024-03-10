@@ -79,7 +79,7 @@ if market_status_response.status_code == 200:
         csv_file_path = "floorsheet_data.csv"
         floorsheet_data.to_csv(csv_file_path, index=False)
 
-        st.success(f"Data saved to {csv_file_path}")
+        st.success(f"Click below to download the file")
 
         # Add a download button for the CSV file
         st.download_button(
