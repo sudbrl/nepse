@@ -49,14 +49,14 @@ def get_floorsheet_data(as_of=None):
             # Break out of the loop for any status code other than 200
             break
 
-   # Concatenate all DataFrames in the list if the list is not empty
+    # Concatenate all DataFrames in the list if the list is not empty
     if all_data_list:
         all_data = pd.concat(all_data_list, ignore_index=True)
         return all_data, as_of
     else:
         # Handle the case when no data is retrieved
         return pd.DataFrame(), as_of
-        
+
 # Streamlit UI
 st.title("Floorsheet Data")
 
@@ -80,3 +80,11 @@ if market_status_response.status_code == 200:
         floorsheet_data.to_csv(csv_file_path, index=False)
 
         st.success(f"Data saved to {csv_file_path}")
+
+        # Add a download button for the CSV file
+        st.download_button(
+            label="Download CSV File",
+            data=floorsheet_data.to_csv(index=False).encode('utf-8'),
+            file_name="floorsheet_data.csv",
+            key="download_csv_button"
+        )
