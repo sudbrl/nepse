@@ -81,10 +81,24 @@ if market_status_response.status_code == 200:
 
         st.success(f"Click below to download the file")
 
-        # Add a download button for the CSV file
-        st.download_button(
-            label="Download CSV File",
-            data=floorsheet_data.to_csv(index=False).encode('utf-8'),
-            file_name="floorsheet_data.csv",
-            key="download_csv_button"
+       # Add a download button for the CSV file
+if st.button("Retrieve Floorsheet Data"):
+    floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
+
+    # Save the data to a CSV file
+    csv_file_path = "floorsheet_data.csv"
+    floorsheet_data.to_csv(csv_file_path, index=False)
+
+    st.success(f"Data saved to {csv_file_path}")
+
+    # Add a download button for the CSV file
+    csv_data = floorsheet_data.to_csv(index=False)
+    st.download_button(
+        label="Download CSV File",
+        data=csv_data.encode('utf-8'),
+        file_name="floorsheet_data.csv",
+        mime="text/csv",
+        key="download_csv_button"
+    )
+
         )
