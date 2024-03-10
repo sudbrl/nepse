@@ -5,6 +5,7 @@ from datetime import datetime
 from io import BytesIO
 
 # Function to retrieve floorsheet data
+@st.cache
 def get_floorsheet_data(as_of=None):
     # Set the URL for the floorsheet API
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
@@ -80,4 +81,3 @@ if market_status_response.status_code == 200:
             file_name="floorsheet_data.csv",
             mime="text/csv"
         )
-
