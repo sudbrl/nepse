@@ -49,12 +49,16 @@ def get_floorsheet_data(as_of=None):
             # Break out of the loop for any status code other than 200
             break
 
-    # Concatenate all DataFrames in the list
-    all_data = pd.concat(all_data_list, ignore_index=True)
-    return all_data, as_of
-
+   # Concatenate all DataFrames in the list if the list is not empty
+    if all_data_list:
+        all_data = pd.concat(all_data_list, ignore_index=True)
+        return all_data, as_of
+    else:
+        # Handle the case when no data is retrieved
+        return pd.DataFrame(), as_of
+        
 # Streamlit UI
-st.title("Chukul Floorsheet Data")
+st.title("Floorsheet Data")
 
 # Get the current market status 'as_of' value
 market_status_url = "https://chukul.com/api/tools/market/status/"
