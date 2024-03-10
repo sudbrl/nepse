@@ -68,14 +68,12 @@ if market_status_response.status_code == 200:
     as_of = market_status_data.get("as_of")
 
     # Button to trigger data retrieval
-    if st.button("Retrieve Floorsheet Data"):
-        floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
-        
-        # Save the data to a CSV file
-        csv_file_path = "floorsheet_data.csv"
-        floorsheet_data.to_csv(csv_file_path, index=False)
+   if st.button("Retrieve Floorsheet Data"):
+    floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
+    
+    # Save the data to a CSV file
+    csv_file_path = "floorsheet_data.csv"
+    floorsheet_data.to_csv(csv_file_path, index=False)
 
-        st.success(f"Data saved to {csv_file_path}")
+    st.success(f"Data saved to {csv_file_path}")
 
-else:
-    st.error(f"Failed to retrieve market status. Status code: {market_status_response.status_code}")
