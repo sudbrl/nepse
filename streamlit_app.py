@@ -25,28 +25,26 @@ def get_floorsheet_data(as_of=None):
         response = requests.get(url)
 
         # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            # Parse the JSON data from the response
-            data = response.json()
+if response.status_code == 200:
+    # Parse the JSON data from the response
+    data = response.json()
 
-            # Check if 'data' is empty, indicating no more records
-            if not data['data']:
-                break
+    # Check if 'data' is empty, indicating no more records
+    if not data['data']:
+        break
 
-            # Extract information from the data
-            current_data = pd.DataFrame(data['data'])
+    # Extract information from the data
+    current_data = pd.DataFrame(data['data'])
 
-            # Update as_of with the latest value
-            as_of = data.get("as_of")
+    # Update as_of with the latest value
+    as_of = data.get("as_of")
 
-            # Append the current data to the list
-            all_data_list.append(current_data)
+    # Append the current data to the list
+    all_data_list.append(current_data)
 
-            # Increment the page number for the next iteration
-            page_number += 1
-        else:
-            st.error(f"Failed to retrieve data. Status code: {response.status_code}")
-            break
+    # Increment the page number for the next iteration
+    page_number += 1
+
 
     # Concatenate all DataFrames in the list
     all_data = pd.concat(all_data_list, ignore_index=True)
