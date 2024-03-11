@@ -45,7 +45,7 @@ def get_floorsheet_data(as_of=None):
             # Increment the page number for the next iteration
             page_number += 1
         else:
-            st.error(f"Successful. Status code: {response.status_code}")
+            st.error(f"Failed to retrieve data. Status code: {response.status_code}")
             break
 
     # Concatenate all DataFrames in the list
