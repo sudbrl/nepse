@@ -2,18 +2,17 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
+from io import BytesIO
 
 # Function to retrieve floorsheet data
+@st.cache_data
 def get_floorsheet_data(as_of=None):
     # Set the URL for the floorsheet API
-    url_base = "https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
+    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
     page_number = 1
 
     # Create a list to store DataFrames
     all_data_list = []
-
-    # Use the 'as_of' value to set the initial date for the floorsheet API
-    initial_date = datetime.strptime(as_of, '%Y-%m-%d').strftime('%Y-%m-%d')
 
     while True:
         url = url_base.format(initial_date, page_number)
@@ -46,19 +45,16 @@ def get_floorsheet_data(as_of=None):
             # Increment the page number for the next iteration
             page_number += 1
         else:
-            # Break out of the loop for any status code other than 200
+            st.error(f"Failed to retrieve data. Status code: {response.status_code}")
             break
 
-    # Concatenate all DataFrames in the list if the list is not empty
-    if all_data_list:
-        all_data = pd.concat(all_data_list, ignore_index=True)
-        return all_data, as_of
-    else:
-        # Handle the case when no data is retrieved
-        return pd.DataFrame(), as_of
+    # Concatenate all DataFrames in the list
+    all_data = pd.concat(all_data_list, ignore_index=True)
+
+    return all_data, as_of
 
 # Streamlit UI
-st.title("Floorsheet Data")
+st.title("Floorsheet Download")
 
 # Get the current market status 'as_of' value
 market_status_url = "https://chukul.com/api/tools/market/status/"
@@ -71,25 +67,21 @@ if market_status_response.status_code == 200:
     # Get the 'as_of' value from the market status data
     as_of = market_status_data.get("as_of")
 
+    # Use the 'as_of' value to set the initial date for the floorsheet API
+    initial_date = datetime.strptime(as_of, '%Y-%m-%d').strftime('%Y-%m-%d')
+
     # Button to trigger data retrieval
-    button_placeholder = st.empty()
-    if button_placeholder.button("Retrieve Floorsheet Data"):
+    if st.button("Retrieve Floorsheet Data"):
         floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
 
-        if not floorsheet_data.empty:
-            # Save the data to a CSV file
-            csv_file_path = "floorsheet_data.csv"
-            floorsheet_data.to_csv(csv_file_path, index=False)
+        # Display a message outside the cached function
+        st.write("Data retrieval successful.")
 
-            st.success(f"Data saved to {csv_file_path}")
-
-            # Add a download button for the CSV file
-            st.download_button(
-                label="Download CSV File",
-                data=floorsheet_data.to_csv(index=False).encode('utf-8'),
-                file_name="floorsheet_data.csv",
-                mime="text/csv",
-                key="download_csv_button"
-            )
-        else:
-            st.warning("No floorsheet data available.")
+        # Provide a download link for the CSV file
+        csv_data = floorsheet_data.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download CSV",
+            data=csv_data,
+            file_name="floorsheet_data.csv",
+            mime="text/csv"
+        )
