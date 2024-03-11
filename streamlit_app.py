@@ -45,7 +45,8 @@ def get_floorsheet_data(as_of=None):
             # Increment the page number for the next iteration
             page_number += 1
         else:
-            break
+            st.error(f"Failed to retrieve data. Status code: {response.status_code}")
+            st.stop()
 
     # Concatenate all DataFrames in the list
     all_data = pd.concat(all_data_list, ignore_index=True)
@@ -71,10 +72,9 @@ if market_status_response.status_code == 200:
 
     # Button to trigger data retrieval
     if st.button("Retrieve Floorsheet Data"):
-        floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
-
-        # Display a message outside the cached function
-        st.write("Data retrieval successful.")
+        with st.spinner("Retrieving data..."):
+            floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
+        st.success("Data retrieval successful.")
 
         # Provide a download link for the CSV file
         csv_data = floorsheet_data.to_csv(index=False).encode('utf-8')
