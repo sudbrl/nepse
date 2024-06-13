@@ -8,7 +8,7 @@ from io import BytesIO
 @st.cache_data
 def get_floorsheet_data(as_of=None):
     # Set the URL for the floorsheet API
-    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
+    url_base = "https://chukul.com/api/data/v2/floorsheet/bydate/?date={}&page={}&size=120000"
     page_number = 1
 
     # Create a list to store DataFrames
@@ -45,7 +45,7 @@ def get_floorsheet_data(as_of=None):
             # Increment the page number for the next iteration
             page_number += 1
         else:
-            st.error(f"Data fetched. Status code: {response.status_code}")
+            st.error(f"Data fetching failed. Status code: {response.status_code}")
             break
 
     # Concatenate all DataFrames in the list
@@ -72,16 +72,23 @@ if market_status_response.status_code == 200:
 
     # Button to trigger data retrieval
     if st.button("Retrieve Floorsheet Data"):
-        floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
+        with st.spinner("Retrieving data..."):
+            floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
 
         # Display a message outside the cached function
         st.write("Data retrieval successful.")
 
-        # Provide a download link for the CSV file
-        csv_data = floorsheet_data.to_csv(index=False).encode('utf-8')
+        # Provide a download link for the XLSX file
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            floorsheet_data.to_excel(writer, index=False, sheet_name='Floorsheet Data')
+        xlsx_data = output.getvalue()
+        
         st.download_button(
-            label="Download CSV",
-            data=csv_data,
-            file_name="floorsheet_data.csv",
-            mime="text/csv"
+            label="Download XLSX",
+            data=xlsx_data,
+            file_name="floorsheet_data.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+else:
+    st.error("Failed to fetch market status data.")
