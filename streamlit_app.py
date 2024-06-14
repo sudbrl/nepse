@@ -6,7 +6,7 @@ from io import BytesIO
 
 # Function to retrieve floorsheet data
 @st.cache_data
-def get_floorsheet_data(as_of=None):
+def get_floorsheet_data(initial_date, as_of=None):
     # Set the URL for the floorsheet API
     url_base = "https://chukul.com/api/data/v2/floorsheet/bydate/?date={}&page={}&size=120000"
     page_number = 1
@@ -70,10 +70,17 @@ if market_status_response.status_code == 200:
     # Use the 'as_of' value to set the initial date for the floorsheet API
     initial_date = datetime.strptime(as_of, '%Y-%m-%d').strftime('%Y-%m-%d')
 
+    # Input field to enter the symbol or "ALL"
+    symbol = st.text_input("Enter Symbol (or type 'ALL' for all symbols)", value="ALL")
+
     # Button to trigger data retrieval
     if st.button("Retrieve Floorsheet Data"):
         with st.spinner("Retrieving data..."):
-            floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
+            floorsheet_data, latest_as_of = get_floorsheet_data(initial_date, as_of)
+
+            # Filter data based on the input symbol
+            if symbol.upper() != "ALL":
+                floorsheet_data = floorsheet_data[floorsheet_data['symbol'] == symbol.upper()]
 
         # Display a message outside the cached function
         st.write("Data retrieval successful.")
