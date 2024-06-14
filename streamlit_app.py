@@ -6,9 +6,9 @@ from io import BytesIO
 
 # Function to retrieve floorsheet data
 @st.cache_data
-def get_floorsheet_data(initial_date, as_of=None):
+def get_floorsheet_data(as_of=None):
     # Set the URL for the floorsheet API
-    url_base = "https://chukul.com/api/data/v2/floorsheet/bydate/?date={}&page={}&size=120000"
+    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
     page_number = 1
 
     # Create a list to store DataFrames
@@ -45,7 +45,7 @@ def get_floorsheet_data(initial_date, as_of=None):
             # Increment the page number for the next iteration
             page_number += 1
         else:
-            st.error(f"Data fetching failed. Status code: {response.status_code}")
+            st.error(f"Data fetched. Status code: {response.status_code}")
             break
 
     # Concatenate all DataFrames in the list
@@ -70,32 +70,18 @@ if market_status_response.status_code == 200:
     # Use the 'as_of' value to set the initial date for the floorsheet API
     initial_date = datetime.strptime(as_of, '%Y-%m-%d').strftime('%Y-%m-%d')
 
-    # Input field to enter the symbol or "ALL"
-    symbol = st.text_input("Enter Symbol (or type 'ALL' for all symbols)", value="ALL")
-
     # Button to trigger data retrieval
     if st.button("Retrieve Floorsheet Data"):
-        with st.spinner("Retrieving data..."):
-            floorsheet_data, latest_as_of = get_floorsheet_data(initial_date, as_of)
-
-            # Filter data based on the input symbol
-            if symbol.upper() != "ALL":
-                floorsheet_data = floorsheet_data[floorsheet_data['symbol'] == symbol.upper()]
+        floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
 
         # Display a message outside the cached function
         st.write("Data retrieval successful.")
 
-        # Provide a download link for the XLSX file
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            floorsheet_data.to_excel(writer, index=False, sheet_name='Floorsheet Data')
-        xlsx_data = output.getvalue()
-        
+        # Provide a download link for the CSV file
+        csv_data = floorsheet_data.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Download XLSX",
-            data=xlsx_data,
-            file_name="floorsheet_data.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            label="Download CSV",
+            data=csv_data,
+            file_name="floorsheet_data.csv",
+            mime="text/csv"
         )
-else:
-    st.error("Failed to fetch market status data.")
