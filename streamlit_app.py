@@ -4,14 +4,12 @@ import pandas as pd
 from datetime import datetime
 
 # Function to retrieve floorsheet data
-@st.cache
+@st.cache(allow_output_mutation=True)
 def get_floorsheet_data(initial_date, as_of=None):
     # Set the URL for the floorsheet API
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
     page_number = 1
-
-    # Create a list to store DataFrames
-    all_data_list = []
+    all_data = []
 
     while True:
         url = url_base.format(initial_date, page_number)
@@ -39,18 +37,18 @@ def get_floorsheet_data(initial_date, as_of=None):
             as_of = data.get("as_of")
 
             # Append the current data to the list
-            all_data_list.append(current_data)
+            all_data.append(current_data)
 
             # Increment the page number for the next iteration
             page_number += 1
         else:
-            st.error(f"Data fetched. Status code: {response.status_code}")
+            st.error(f"Data fetch failed. Status code: {response.status_code}")
             break
 
     # Concatenate all DataFrames in the list
-    all_data = pd.concat(all_data_list, ignore_index=True)
+    df = pd.concat(all_data, ignore_index=True)
 
-    return all_data, as_of
+    return df, as_of
 
 # Streamlit UI
 st.title("Floorsheet Download")
@@ -87,3 +85,5 @@ if market_status_response.status_code == 200:
             file_name="floorsheet_data.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+else:
+    st.error("Failed to fetch market status data.")
