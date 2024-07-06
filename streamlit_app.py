@@ -77,11 +77,14 @@ if market_status_response.status_code == 200:
         # Display a message outside the cached function
         st.write("Data retrieval successful.")
 
-        # Provide a download link for the CSV file
-        csv_data = floorsheet_data.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Download CSV",
-            data=csv_data,
-            file_name="floorsheet_data.csv",
-            mime="text/csv"
-        )
+      
+# Assuming floorsheet_data is your DataFrame
+excel_data = floorsheet_data.to_excel(index=False)
+
+# Create a download button for Excel file
+st.download_button(
+    label="Download Excel",
+    data=excel_data,
+    file_name="floorsheet_data.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
