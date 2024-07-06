@@ -2,11 +2,10 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
-from io import BytesIO
 
 # Function to retrieve floorsheet data
-@st.cache_data
-def get_floorsheet_data(as_of=None):
+@st.cache
+def get_floorsheet_data(initial_date, as_of=None):
     # Set the URL for the floorsheet API
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
     page_number = 1
@@ -72,19 +71,19 @@ if market_status_response.status_code == 200:
 
     # Button to trigger data retrieval
     if st.button("Retrieve Floorsheet Data"):
-        floorsheet_data, latest_as_of = get_floorsheet_data(as_of)
+        # Call the function to get floorsheet data
+        floorsheet_data, latest_as_of = get_floorsheet_data(initial_date, as_of)
 
         # Display a message outside the cached function
         st.write("Data retrieval successful.")
 
-      
-# Assuming floorsheet_data is your DataFrame
-excel_data = floorsheet_data.to_excel(index=False)
+        # Assuming floorsheet_data is your DataFrame
+        excel_data = floorsheet_data.to_excel(index=False)
 
-# Create a download button for Excel file
-st.download_button(
-    label="Download Excel",
-    data=excel_data,
-    file_name="floorsheet_data.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
+        # Create a download button for Excel file
+        st.download_button(
+            label="Download Excel",
+            data=excel_data,
+            file_name="floorsheet_data.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
