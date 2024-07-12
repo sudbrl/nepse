@@ -2,9 +2,10 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
+from io import BytesIO
 
 # Function to retrieve floorsheet data
-@st.cache(allow_output_mutation=True)
+@st.cache_data()
 def get_floorsheet_data(initial_date, as_of=None):
     # Set the URL for the floorsheet API
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
@@ -75,13 +76,19 @@ if market_status_response.status_code == 200:
         # Display a message outside the cached function
         st.write("Data retrieval successful.")
 
-        # Assuming floorsheet_data is your DataFrame
-        excel_data = floorsheet_data.to_excel(index=False)
+        # Display the data in the Streamlit app
+        st.dataframe(floorsheet_data)
+
+        # Convert DataFrame to Excel format
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            floorsheet_data.to_excel(writer, index=False)
+        output.seek(0)
 
         # Create a download button for Excel file
         st.download_button(
             label="Download Excel",
-            data=excel_data,
+            data=output,
             file_name="floorsheet_data.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
