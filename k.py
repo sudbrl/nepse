@@ -26,8 +26,7 @@ def get_floorsheet_data(initial_date, as_of=None):
             all_data_list.append(current_data)
             page_number += 1
         else:
-            st.error(f"Error retrieving data. Status code: {response.status_code}")
-            break
+            break  # Exit loop on error
 
     all_data = pd.concat(all_data_list, ignore_index=True)
     return all_data, as_of
@@ -57,8 +56,6 @@ if market_status_response.status_code == 200:
             with st.spinner('Retrieving data...'):
                 floorsheet_data, latest_as_of = get_floorsheet_data(initial_date, as_of)
 
-            st.success("Data retrieval complete!")
-
             # Convert DataFrame to Excel
             excel_data = convert_df_to_excel(floorsheet_data)
 
@@ -68,7 +65,5 @@ if market_status_response.status_code == 200:
                 file_name='floorsheet_data.xlsx',
                 mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             )
-    else:
-        st.error("Failed to retrieve 'as_of' value from market status data.")
 else:
-    st.error(f"Failed to retrieve market status. Status code: {market_status_response.status_code}")
+    st.write("Failed to retrieve market status or 'as_of' value.")
