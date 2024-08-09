@@ -6,7 +6,7 @@ from io import BytesIO
 
 # Function to retrieve floorsheet data
 @st.cache_data()
-def get_floorsheet_data(selected_date, as_of=None, max_pages=10):
+def get_floorsheet_data(selected_date, max_pages=10):
     # Set the URL for the floorsheet API
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=5000"
     page_number = 1
@@ -14,10 +14,6 @@ def get_floorsheet_data(selected_date, as_of=None, max_pages=10):
 
     while page_number <= max_pages:
         url = url_base.format(selected_date, page_number)
-
-        # Include as_of parameter if it's available
-        if as_of:
-            url += f"&as_of={as_of}"
 
         # Make a GET request to the API with a timeout
         response = requests.get(url, timeout=10)
@@ -38,9 +34,6 @@ def get_floorsheet_data(selected_date, as_of=None, max_pages=10):
             # Extract information from the data
             current_data = pd.DataFrame(data['data'])
 
-            # Update as_of with the latest value
-            as_of = data.get("as_of")
-
             # Append the current data to the list
             all_data.append(current_data)
 
@@ -58,7 +51,7 @@ def get_floorsheet_data(selected_date, as_of=None, max_pages=10):
         df = pd.DataFrame()
         st.warning("No data was retrieved.")
 
-    return df, as_of
+    return df
 
 # Streamlit UI
 st.title("Floorsheet Download")
@@ -70,7 +63,7 @@ selected_date = st.date_input("Select Date", value=datetime.today()).strftime('%
 if st.button("Retrieve Floorsheet Data"):
     with st.spinner("Retrieving floorsheet data..."):
         # Call the function to get floorsheet data
-        floorsheet_data, latest_as_of = get_floorsheet_data(selected_date, max_pages=10)
+        floorsheet_data = get_floorsheet_data(selected_date)
 
         # Display a message outside the cached function
         if not floorsheet_data.empty:
