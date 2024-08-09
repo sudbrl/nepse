@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
-from io import BytesIO
+from io import StringIO
 
 # Function to retrieve floorsheet data
 @st.cache_data()
@@ -71,14 +71,14 @@ if st.button("Retrieve Floorsheet Data"):
             st.dataframe(floorsheet_data)
 
             # Convert DataFrame to CSV format
-            output = BytesIO()
-            floorsheet_data.to_csv(output, index=False)
-            output.seek(0)
+            csv_output = StringIO()
+            floorsheet_data.to_csv(csv_output, index=False)
+            csv_output.seek(0)
 
             # Create a download button for CSV file
             st.download_button(
                 label="Download CSV",
-                data=output,
+                data=csv_output.getvalue(),
                 file_name="floorsheet_data.csv",
                 mime="text/csv"
             )
