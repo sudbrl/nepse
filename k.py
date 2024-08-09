@@ -11,7 +11,7 @@ def get_floorsheet_data_for_date(selected_date, max_pages=10):
     all_data = []
 
     while page_number <= max_pages:
-        url = url_base.format(selected_date, page_number)
+        url = url_base.format(selected_date.strftime('%Y-%m-%d'), page_number)
         response = requests.get(url, timeout=10)
 
         if response.status_code == 200:
@@ -37,14 +37,14 @@ def get_floorsheet_data_for_date(selected_date, max_pages=10):
 # Function to retrieve floorsheet data within a date range
 def get_floorsheet_data(date_from, date_to):
     all_data = []
-
+    
     current_date = date_from
     while current_date <= date_to:
         df = get_floorsheet_data_for_date(current_date)
         if not df.empty:
             all_data.append(df)
         current_date += timedelta(days=1)
-
+    
     if all_data:
         return pd.concat(all_data, ignore_index=True)
     else:
@@ -54,12 +54,16 @@ def get_floorsheet_data(date_from, date_to):
 st.title("Floorsheet Download")
 
 # Date range input for the user
-date_from = st.date_input("Select Start Date", value=datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
-date_to = st.date_input("Select End Date", value=datetime.today()).strftime('%Y-%m-%d')
+date_from = st.date_input("Select Start Date", value=datetime.today() - timedelta(days=1))
+date_to = st.date_input("Select End Date", value=datetime.today())
 
 # Button to trigger data retrieval
 if st.button("Retrieve Floorsheet Data"):
     with st.spinner("Retrieving floorsheet data..."):
+        # Ensure date_from and date_to are datetime objects
+        date_from = datetime.strptime(date_from.strftime('%Y-%m-%d'), '%Y-%m-%d')
+        date_to = datetime.strptime(date_to.strftime('%Y-%m-%d'), '%Y-%m-%d')
+
         floorsheet_data = get_floorsheet_data(date_from, date_to)
 
     if not floorsheet_data.empty:
