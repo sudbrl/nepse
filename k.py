@@ -6,14 +6,14 @@ from io import BytesIO
 
 # Function to retrieve floorsheet data
 @st.cache_data()
-def get_floorsheet_data(initial_date, as_of=None):
+def get_floorsheet_data(selected_date, as_of=None):
     # Set the URL for the floorsheet API
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
     page_number = 1
     all_data = []
 
     while True:
-        url = url_base.format(initial_date, page_number)
+        url = url_base.format(selected_date, page_number)
 
         # Include as_of parameter if it's available
         if as_of:
@@ -61,46 +61,31 @@ def get_floorsheet_data(initial_date, as_of=None):
 # Streamlit UI
 st.title("Floorsheet Download")
 
-# Get the current market status 'as_of' value
-market_status_url = "https://chukul.com/api/tools/market/status/"
-market_status_response = requests.get(market_status_url)
+# Date input for user to specify the date
+selected_date = st.date_input("Select Date", value=datetime.today()).strftime('%Y-%m-%d')
 
-# Check if the request was successful (status code 200)
-if market_status_response.status_code == 200:
-    market_status_data = market_status_response.json()
+# Button to trigger data retrieval
+if st.button("Retrieve Floorsheet Data"):
+    with st.spinner("Retrieving floorsheet data..."):
+        # Call the function to get floorsheet data
+        floorsheet_data, latest_as_of = get_floorsheet_data(selected_date)
 
-    # Get the 'as_of' value from the market status data
-    as_of = market_status_data.get("as_of")
-    st.write(f"Market status 'as_of' value: {as_of}")
+        # Display a message outside the cached function
+        if not floorsheet_data.empty:
+            st.success("Data retrieval successful.")
+            st.dataframe(floorsheet_data)
 
-    # Use the 'as_of' value to set the initial date for the floorsheet API
-    initial_date = datetime.strptime(as_of, '%Y-%m-%d').strftime('%Y-%m-%d')
+            # Convert DataFrame to CSV format
+            output = BytesIO()
+            floorsheet_data.to_csv(output, index=False)
+            output.seek(0)
 
-    # Button to trigger data retrieval
-    if st.button("Retrieve Floorsheet Data"):
-        with st.spinner("Retrieving floorsheet data..."):
-            # Call the function to get floorsheet data
-            floorsheet_data, latest_as_of = get_floorsheet_data(initial_date, as_of)
-
-            # Display a message outside the cached function
-            if not floorsheet_data.empty:
-                st.success("Data retrieval successful.")
-                st.dataframe(floorsheet_data)
-
-                # Convert DataFrame to Excel format
-                output = BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    floorsheet_data.to_excel(writer, index=False)
-                output.seek(0)
-
-                # Create a download button for Excel file
-                st.download_button(
-                    label="Download Excel",
-                    data=output,
-                    file_name="floorsheet_data.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            else:
-                st.warning("No data to display or download.")
-else:
-    st.error("Failed to fetch market status data.")
+            # Create a download button for CSV file
+            st.download_button(
+                label="Download CSV",
+                data=output,
+                file_name="floorsheet_data.csv",
+                mime="text/csv"
+            )
+        else:
+            st.warning("No data to display or download.")
