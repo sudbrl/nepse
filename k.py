@@ -7,49 +7,31 @@ from io import StringIO
 # Function to retrieve floorsheet data
 @st.cache_data()
 def get_floorsheet_data(selected_date, max_pages=10):
-    # Set the URL for the floorsheet API
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=5000"
     page_number = 1
     all_data = []
 
     while page_number <= max_pages:
         url = url_base.format(selected_date, page_number)
-
-        # Make a GET request to the API with a timeout
         response = requests.get(url, timeout=10)
 
-        # Check if the request was successful (status code 200)
         if response.status_code == 200:
-            # Parse the JSON data from the response
             data = response.json()
 
-            # Display page number and data size
-            st.write(f"Retrieved page {page_number}, data size: {len(data['data'])}")
-
-            # Check if 'data' is empty, indicating no more records
             if not data['data']:
-                st.warning("No more records found.")
                 break
 
-            # Extract information from the data
             current_data = pd.DataFrame(data['data'])
-
-            # Append the current data to the list
             all_data.append(current_data)
-
-            # Increment the page number for the next iteration
             page_number += 1
         else:
             st.error(f"Data fetch failed. Status code: {response.status_code}")
             break
 
     if all_data:
-        # Concatenate all DataFrames in the list
         df = pd.concat(all_data, ignore_index=True)
-        st.write(f"Total records retrieved: {len(df)}")
     else:
         df = pd.DataFrame()
-        st.warning("No data was retrieved.")
 
     return df
 
@@ -62,25 +44,22 @@ selected_date = st.date_input("Select Date", value=datetime.today()).strftime('%
 # Button to trigger data retrieval
 if st.button("Retrieve Floorsheet Data"):
     with st.spinner("Retrieving floorsheet data..."):
-        # Call the function to get floorsheet data
         floorsheet_data = get_floorsheet_data(selected_date)
 
-        # Display a message outside the cached function
-        if not floorsheet_data.empty:
-            st.success("Data retrieval successful.")
-            st.dataframe(floorsheet_data)
+    if not floorsheet_data.empty:
+        st.success("Data retrieval successful.")
 
-            # Convert DataFrame to CSV format
-            csv_output = StringIO()
-            floorsheet_data.to_csv(csv_output, index=False)
-            csv_output.seek(0)
+        # Store the CSV data in StringIO for download
+        csv_output = StringIO()
+        floorsheet_data.to_csv(csv_output, index=False)
+        csv_output.seek(0)
 
-            # Create a download button for CSV file
-            st.download_button(
-                label="Download CSV",
-                data=csv_output.getvalue(),
-                file_name="floorsheet_data.csv",
-                mime="text/csv"
-            )
-        else:
-            st.warning("No data to display or download.")
+        # Display the download button
+        st.download_button(
+            label="Download CSV",
+            data=csv_output.getvalue(),
+            file_name="floorsheet_data.csv",
+            mime="text/csv"
+        )
+    else:
+        st.warning("No data was retrieved.")
