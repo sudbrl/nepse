@@ -6,26 +6,28 @@ from io import BytesIO
 
 # Function to retrieve floorsheet data
 @st.cache_data()
-def get_floorsheet_data(selected_date, as_of=None):
+def get_floorsheet_data(selected_date, as_of=None, max_pages=10):
     # Set the URL for the floorsheet API
-    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=120000"
+    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=5000"
     page_number = 1
     all_data = []
 
-    while True:
+    while page_number <= max_pages:
         url = url_base.format(selected_date, page_number)
 
         # Include as_of parameter if it's available
         if as_of:
             url += f"&as_of={as_of}"
 
-        # Make a GET request to the API
-        response = requests.get(url)
+        # Make a GET request to the API with a timeout
+        response = requests.get(url, timeout=10)
 
         # Check if the request was successful (status code 200)
         if response.status_code == 200:
             # Parse the JSON data from the response
             data = response.json()
+
+            # Display page number and data size
             st.write(f"Retrieved page {page_number}, data size: {len(data['data'])}")
 
             # Check if 'data' is empty, indicating no more records
@@ -68,7 +70,7 @@ selected_date = st.date_input("Select Date", value=datetime.today()).strftime('%
 if st.button("Retrieve Floorsheet Data"):
     with st.spinner("Retrieving floorsheet data..."):
         # Call the function to get floorsheet data
-        floorsheet_data, latest_as_of = get_floorsheet_data(selected_date)
+        floorsheet_data, latest_as_of = get_floorsheet_data(selected_date, max_pages=10)
 
         # Display a message outside the cached function
         if not floorsheet_data.empty:
