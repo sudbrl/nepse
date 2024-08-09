@@ -1,12 +1,11 @@
 import streamlit as st
 import requests
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import StringIO
 
-# Function to retrieve floorsheet data
-@st.cache_data()
-def get_floorsheet_data(selected_date, max_pages=10):
+# Function to retrieve floorsheet data for a given date
+def get_floorsheet_data_for_date(selected_date, max_pages=10):
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=5000"
     page_number = 1
     all_data = []
@@ -35,16 +34,33 @@ def get_floorsheet_data(selected_date, max_pages=10):
 
     return df
 
+# Function to retrieve floorsheet data within a date range
+def get_floorsheet_data(date_from, date_to):
+    all_data = []
+
+    current_date = date_from
+    while current_date <= date_to:
+        df = get_floorsheet_data_for_date(current_date)
+        if not df.empty:
+            all_data.append(df)
+        current_date += timedelta(days=1)
+
+    if all_data:
+        return pd.concat(all_data, ignore_index=True)
+    else:
+        return pd.DataFrame()
+
 # Streamlit UI
 st.title("Floorsheet Download")
 
-# Date input for user to specify the date
-selected_date = st.date_input("Select Date", value=datetime.today()).strftime('%Y-%m-%d')
+# Date range input for the user
+date_from = st.date_input("Select Start Date", value=datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+date_to = st.date_input("Select End Date", value=datetime.today()).strftime('%Y-%m-%d')
 
 # Button to trigger data retrieval
 if st.button("Retrieve Floorsheet Data"):
     with st.spinner("Retrieving floorsheet data..."):
-        floorsheet_data = get_floorsheet_data(selected_date)
+        floorsheet_data = get_floorsheet_data(date_from, date_to)
 
     if not floorsheet_data.empty:
         st.success("Data retrieval successful.")
@@ -54,7 +70,7 @@ if st.button("Retrieve Floorsheet Data"):
         floorsheet_data.to_csv(csv_output, index=False)
         csv_output.seek(0)
 
-        # Display the download button
+        # Keep displaying the download button until the user downloads the CSV
         st.download_button(
             label="Download CSV",
             data=csv_output.getvalue(),
