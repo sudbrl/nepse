@@ -6,7 +6,7 @@ from io import StringIO
 
 # Function to retrieve floorsheet data for a given date
 def get_floorsheet_data_for_date(selected_date, max_pages=10):
-    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=5000"
+    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=50000"
     page_number = 1
     all_data = []
 
