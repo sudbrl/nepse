@@ -6,7 +6,7 @@ from io import StringIO
 
 # Function to retrieve floorsheet data for a given date
 def get_floorsheet_data_for_date(selected_date):
-    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size="
+    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=50000"
     page_number = 1
     all_data = []
 
@@ -29,7 +29,6 @@ def get_floorsheet_data_for_date(selected_date):
                 if page_number >= total_pages:
                     break
             else:
-                # If 'total_pages' doesn't exist, stop the loop
                 break
 
             page_number += 1
@@ -68,19 +67,16 @@ date_to = st.date_input("Select End Date", value=datetime.today())
 # Button to trigger data retrieval
 if st.button("Retrieve Floorsheet Data"):
     with st.spinner("Retrieving floorsheet data..."):
-        # Ensure date_from and date_to are datetime objects
-        date_from = datetime.strptime(date_from.strftime('%Y-%m-%d'), '%Y-%m-%d')
-        date_to = datetime.strptime(date_to.strftime('%Y-%m-%d'), '%Y-%m-%d')
+        date_from = datetime.combine(date_from, datetime.min.time())
+        date_to = datetime.combine(date_to, datetime.min.time())
 
         floorsheet_data = get_floorsheet_data(date_from, date_to)
 
     if not floorsheet_data.empty:
-        # Store the CSV data in StringIO for download
         csv_output = StringIO()
         floorsheet_data.to_csv(csv_output, index=False)
         csv_output.seek(0)
 
-        # Keep displaying the download button until the user downloads the CSV
         st.download_button(
             label="Download CSV",
             data=csv_output.getvalue(),
