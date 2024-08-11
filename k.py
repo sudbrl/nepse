@@ -17,13 +17,22 @@ def get_floorsheet_data_for_date(selected_date):
         if response.status_code == 200:
             data = response.json()
 
+            # Debugging: Output the structure of the response
+            st.write(data)
+
             if not data['data']:
                 break
 
             current_data = pd.DataFrame(data['data'])
             all_data.append(current_data)
 
-            if page_number >= data['meta']['pagination']['total_pages']:
+            # Check if 'meta' and 'pagination' exist before accessing 'total_pages'
+            if 'meta' in data and 'pagination' in data['meta']:
+                total_pages = data['meta']['pagination'].get('total_pages', 1)
+                if page_number >= total_pages:
+                    break
+            else:
+                # If 'total_pages' doesn't exist, stop the loop
                 break
 
             page_number += 1
