@@ -17,9 +17,6 @@ def get_floorsheet_data_for_date(selected_date):
         if response.status_code == 200:
             data = response.json()
 
-            # Debugging: Output the structure of the response
-            st.write(data)
-
             if not data['data']:
                 break
 
@@ -38,14 +35,12 @@ def get_floorsheet_data_for_date(selected_date):
             page_number += 1
         else:
             st.error(f"Data fetch failed. Status code: {response.status_code}")
-            break
+            return pd.DataFrame()
 
     if all_data:
-        df = pd.concat(all_data, ignore_index=True)
+        return pd.concat(all_data, ignore_index=True)
     else:
-        df = pd.DataFrame()
-
-    return df
+        return pd.DataFrame()
 
 # Function to retrieve floorsheet data within a date range
 def get_floorsheet_data(date_from, date_to):
@@ -79,9 +74,7 @@ if st.button("Retrieve Floorsheet Data"):
 
         floorsheet_data = get_floorsheet_data(date_from, date_to)
 
-    if not floorsheet_data.empty:
-        st.success("Data retrieval successful.")
-
+    if not floorsheet_data.empty():
         # Store the CSV data in StringIO for download
         csv_output = StringIO()
         floorsheet_data.to_csv(csv_output, index=False)
