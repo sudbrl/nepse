@@ -74,7 +74,7 @@ if st.button("Retrieve Floorsheet Data"):
 
         floorsheet_data = get_floorsheet_data(date_from, date_to)
 
-    if not floorsheet_data.empty():
+    if not floorsheet_data.empty:
         # Store the CSV data in StringIO for download
         csv_output = StringIO()
         floorsheet_data.to_csv(csv_output, index=False)
