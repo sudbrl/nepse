@@ -6,7 +6,7 @@ from io import StringIO
 
 # Function to retrieve floorsheet data for a given date
 def get_floorsheet_data_for_date(selected_date):
-    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size=50000"
+    url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size="
     page_number = 1
     all_data = []
 
@@ -23,7 +23,7 @@ def get_floorsheet_data_for_date(selected_date):
             current_data = pd.DataFrame(data['data'])
             all_data.append(current_data)
 
-            # Check if 'meta' and 'pagination' exist before accessing 'total_pages'
+            # Check total pages and break loop if on last page
             if 'meta' in data and 'pagination' in data['meta']:
                 total_pages = data['meta']['pagination'].get('total_pages', 1)
                 if page_number >= total_pages:
@@ -71,8 +71,14 @@ if st.button("Retrieve Floorsheet Data"):
         date_to = datetime.combine(date_to, datetime.min.time())
 
         floorsheet_data = get_floorsheet_data(date_from, date_to)
+        
+        # Debug: Check if data was retrieved
+        st.write(f"Data Retrieved: {not floorsheet_data.empty}")
 
     if not floorsheet_data.empty:
+        # Debug: Preview a small part of the data
+        st.write(floorsheet_data.head())
+        
         csv_output = StringIO()
         floorsheet_data.to_csv(csv_output, index=False)
         csv_output.seek(0)
