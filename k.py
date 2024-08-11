@@ -5,12 +5,12 @@ from datetime import datetime, timedelta
 from io import StringIO
 
 # Function to retrieve floorsheet data for a given date
-def get_floorsheet_data_for_date(selected_date, max_pages=10):
+def get_floorsheet_data_for_date(selected_date):
     url_base = f"https://chukul.com/api/data/v2/floorsheet/bydate/?date={{}}&page={{}}&size="
     page_number = 1
     all_data = []
 
-    while page_number <= max_pages:
+    while True:
         url = url_base.format(selected_date.strftime('%Y-%m-%d'), page_number)
         response = requests.get(url, timeout=10)
 
@@ -22,6 +22,10 @@ def get_floorsheet_data_for_date(selected_date, max_pages=10):
 
             current_data = pd.DataFrame(data['data'])
             all_data.append(current_data)
+
+            if page_number >= data['meta']['pagination']['total_pages']:
+                break
+
             page_number += 1
         else:
             st.error(f"Data fetch failed. Status code: {response.status_code}")
